@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlockByAlex Health Information Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chatbot-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 1000px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: containerFadeIn 0.8s ease-out;
+        }
+
+        @keyframes containerFadeIn {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header-icon {
+            font-size: 2em;
+            animation: heartbeat 2s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            14% { transform: scale(1.1); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.1); }
+            70% { transform: scale(1); }
+        }
+
+        .ai-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 12px;
+            border-radius: 20px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            background: #4CAF50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+            position: relative;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: messageSlide 0.5s ease-out;
+            position: relative;
+        }
+
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.bot {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-start;
+        }
+
+        .message-content {
+            max-width: 75%;
+            padding: 18px 22px;
+            border-radius: 20px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            border: 1px solid #e1e5e9;
+            margin-left: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-right: 15px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .bot-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            animation: avatarFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes avatarFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(52, 73, 94, 0.3);
+        }
+
+        .info-panel {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .urgency-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .urgency-low { background: #4CAF50; color: white; }
+        .urgency-medium { background: #FFC107; color: #333; }
+        .urgency-high { background: #FF5722; color: white; }
+        .urgency-emergency { background: #f44336; color: white; animation: emergencyBlink 1s infinite; }
+
+        @keyframes emergencyBlink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.7; }
+        }
+
+        .input-area {
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(225, 229, 233, 0.5);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        #userInput {
+            flex: 1;
+            padding: 18px 25px;
+            border: 2px solid #e1e5e9;
+            border-radius: 30px;
+            outline: none;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        #userInput:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        #sendBtn {
+            padding: 18px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        #sendBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            color: #666;
+            font-style: italic;
+            margin-left: 60px;
+            animation: typingFade 0.5s ease-in;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { 
+                transform: scale(0);
+                opacity: 0.5;
+            }
+            40% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .recommendation-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+            animation: cardAppear 0.6s ease-out;
+        }
+
+        @keyframes cardAppear {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .emergency-card { border-left-color: #f44336; }
+        .urgent-card { border-left-color: #FF9800; }
+        .routine-card { border-left-color: #4CAF50; }
+        .prevention-card { border-left-color: #2196F3; }
+
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+            animation: actionsSlide 0.6s ease-out;
+        }
+
+        @keyframes actionsSlide {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .quick-action-btn {
+            padding: 12px 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.2);
+        }
+
+        .quick-action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .disclaimer-banner {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 4px solid #dc3545;
+        }
+
+        .chat-area::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-area::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 10px;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        .appointment-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .form-group {
+            margin: 15px 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .chatbot-container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <div class="header">
+            <h1>
+                <i class="fas fa-heartbeat header-icon"></i>
+                FlockByAlex Health Information Assistant
+            </h1>
+            <p>
+                <i class="fas fa-info-circle"></i>
+                Health Information & Appointment Booking Support
+            </p>
+            <div class="ai-status">
+                <div class="status-dot"></div>
+                <span class="status-text">AI Active</span>
+            </div>
+        </div>
+        
+        <div class="chat-area" id="chatArea">
+            <!-- Messages will be added here -->
+        </div>
+        
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="bot-avatar">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <span>AI is processing your request...</span>
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Ask about health information, book appointments, or get wellness tips..." autocomplete="off">
+            <button id="sendBtn">
+                <i class="fas fa-paper-plane"></i>
+                Send
+            </button>
+        </div>
+    </div>
+
+    <script>
+        class FlockByAlexHealthAssistant {
+            constructor() {
+                this.knowledgeBase = this.initializeKnowledgeBase();
+                this.conversationHistory = [];
+                this.currentFlow = null;
+                this.userContext = {
+                    intent: null,
+                    appointmentData: {},
+                    preferredSpecialty: null
+                };
+                this.availableSlots = this.generateAvailableSlots();
+                this.setupEventListeners();
+                this.showWelcomeMessage();
+            }
+
+            initializeKnowledgeBase() {
+                return {
+                    // Health information database
+                    healthTopics: {
+                        'prevention': {
+                            keywords: ['prevent', 'prevention', 'avoid', 'wellness', 'healthy habits'],
+                            info: {
+                                'heart disease': 'Regular exercise, healthy diet low in saturated fats, no smoking, manage stress',
+                                'diabetes': 'Maintain healthy weight, regular physical activity, balanced diet, limit sugar',
+                                'cancer': 'Regular screenings, healthy lifestyle, avoid tobacco, limit alcohol',
+                                'common cold': 'Wash hands frequently, get adequate sleep, eat nutritious foods, stay hydrated'
+                            }
+                        },
+                        'symptoms': {
+                            keywords: ['symptom', 'feel', 'pain', 'ache', 'sick', 'hurt'],
+                            generalAdvice: 'I can provide general health information, but for specific symptoms, please consult a healthcare professional for proper evaluation.'
+                        },
+                        'nutrition': {
+                            keywords: ['diet', 'nutrition', 'eat', 'food', 'vitamin', 'supplement'],
+                            info: {
+                                'balanced diet': 'Include variety of fruits, vegetables, whole grains, lean proteins, and healthy fats',
+                                'hydration': 'Aim for 8 glasses of water daily, more if physically active',
+                                'vitamins': 'Best obtained from whole foods; supplements should be discussed with healthcare provider'
+                            }
+                        },
+                        'exercise': {
+                            keywords: ['exercise', 'workout', 'fitness', 'activity', 'gym'],
+                            info: {
+                                'recommendations': 'Adults need 150 minutes moderate aerobic activity weekly plus muscle strengthening',
+                                'safety': 'Start slowly, warm up properly, listen to your body, stay hydrated',
+                                'types': 'Combine cardio, strength training, flexibility, and balance exercises'
+                            }
+                        }
+                    },
+                    
+                    // Available medical specialties
+                    specialties: [
+                        'General Medicine',
+                        'Cardiology',
+                        'Dermatology',
+                        'Orthopedics',
+                        'Gynecology',
+                        'Pediatrics',
+                        'Mental Health',
+                        'Urgent Care'
+                    ],
+                    
+                    // FAQ database
+                    faqs: {
+                        'appointment booking': 'You can book appointments through this chat. I\'ll guide you through the process.',
+                        'insurance': 'We accept most major insurance plans. Please bring your insurance card to your appointment.',
+                        'office hours': 'Our clinic is open Monday-Friday 8AM-6PM, Saturday 9AM-2PM. Emergency care available 24/7.',
+                        'telemedicine': 'We offer virtual consultations for follow-ups and non-emergency consultations.',
+                        'prescription refills': 'Contact your pharmacy or log into the patient portal to request prescription refills.'
+                    },
+                    
+                    // Emergency keywords
+                    emergencyKeywords: [
+                        'emergency', 'urgent', 'severe', 'can\'t breathe', 'chest pain', 
+                        'unconscious', 'bleeding', 'overdose', 'suicide', 'stroke'
+                    ]
+                };
+            }
+
+            generateAvailableSlots() {
+                const slots = [];
+                const today = new Date();
+                
+                // Generate next 14 days of appointments
+                for (let i = 1; i <= 14; i++) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() + i);
+                    
+                    // Skip weekends for regular appointments
+                    if (date.getDay() !== 0 && date.getDay() !== 6) {
+                        const timeSlots = ['9:00 AM', '10:30 AM', '2:00 PM', '3:30 PM', '4:45 PM'];
+                        
+                        timeSlots.forEach(time => {
+                            slots.push({
+                                date: date.toDateString(),
+                                time: time,
+                                available: Math.random() > 0.3 // 70% availability rate
+                            });
+                        });
+                    }
+                }
+                
+                return slots;
+            }
+
+            setupEventListeners() {
+                const userInput = document.getElementById('userInput');
+                const sendBtn = document.getElementById('sendBtn');
+
+                sendBtn.addEventListener('click', () => this.processUserInput());
+                userInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.processUserInput();
+                    }
+                });
+
+                userInput.focus();
+            }
+
+            async processUserInput() {
+                const userInput = document.getElementById('userInput');
+                const message = userInput.value.trim();
+                
+                if (!message) return;
+
+                this.addMessage(message, 'user');
+                userInput.value = '';
+                
+                this.showTypingIndicator();
+                
+                this.conversationHistory.push({ role: 'user', content: message });
+                
+                // Process with AI
+                setTimeout(() => {
+                    const response = this.processMessage(message);
+                    this.hideTypingIndicator();
+                    this.displayResponse(response);
+                }, 1500);
+            }
+
+            processMessage(message) {
+                const messageLower = message.toLowerCase();
+                
+                // Emergency detection
+                if (this.detectEmergency(messageLower)) {
+                    return this.handleEmergency();
+                }
+                
+                // Intent classification
+                const intent = this.classifyIntent(messageLower);
+                
+                switch (intent) {
+                    case 'appointment_booking':
+                        return this.handleAppointmentBooking(message);
+                    case 'health_information':
+                        return this.handleHealthInformation(message);
+                    case 'faq':
+                        return this.handleFAQ(message);
+                    case 'symptom_query':
+                        return this.handleSymptomQuery(message);
+                    default:
+                        return this.handleGeneral(message);
+                }
+            }
+
+            classifyIntent(message) {
+                // Appointment booking keywords
+                if (this.containsKeywords(message, ['book', 'appointment', 'schedule', 'doctor', 'visit', 'see'])) {
+                    return 'appointment_booking';
+                }
+                
+                // Health information keywords
+                if (this.containsKeywords(message, ['what is', 'tell me about', 'information', 'learn', 'explain'])) {
+                    return 'health_information';
+                }
+                
+                // FAQ keywords
+                if (this.containsKeywords(message, ['hours', 'insurance', 'cost', 'location', 'contact', 'phone'])) {
+                    return 'faq';
+                }
+                
+                // Symptom queries
+                if (this.containsKeywords(message, ['i have', 'experiencing', 'feeling', 'pain', 'hurt', 'sick'])) {
+                    return 'symptom_query';
+                }
+                
+                return 'general';
+            }
+
+            containsKeywords(message, keywords) {
+                return keywords.some(keyword => message.includes(keyword));
+            }
+
+            detectEmergency(message) {
+                return this.knowledgeBase.emergencyKeywords.some(keyword => message.includes(keyword));
+            }
+
+            handleEmergency() {
+                return {
+                    type: 'emergency',
+                    message: `I've detected that this might be an emergency situation. 
+
+🚨 **If this is a life-threatening emergency, please call 911 immediately.**
+
+For urgent but non-life-threatening situations, you can:
+• Go to the nearest urgent care center
+• Call our 24/7 nurse hotline: (555) 123-HELP
+• Visit the emergency room
+
+I'm designed to provide health information and appointment booking, not emergency medical advice. Please seek immediate professional medical care.`,
+                    actions: [
+                        { text: '<i class="fas fa-phone"></i> Emergency Numbers', action: 'emergency_numbers' },
+                        { text: '<i class="fas fa-hospital"></i> Find Nearest ER', action: 'find_er' },
+                        { text: '<i class="fas fa-arrow-left"></i> Continue Chat', action: 'continue' }
+                    ]
+                };
+            }
+
+            handleAppointmentBooking(message) {
+                if (this.currentFlow === 'booking') {
+                    return this.continueBookingFlow(message);
+                }
+                
+                this.currentFlow = 'booking';
+                this.userContext.intent = 'appointment_booking';
+                
+                return {
+                    type: 'appointment_start',
+                    message: `I'd be happy to help you schedule an appointment! 
+
+Let me guide you through our booking process:
+
+**Step 1: Select Appointment Type**
+
+What type of appointment would you like to book?`,
+                    actions: [
+                        { text: '<i class="fas fa-user-md"></i> General Consultation', action: 'book_general' },
+                        { text: '<i class="fas fa-heart"></i> Specialist Appointment', action: 'book_specialist' },
+                        { text: '<i class="fas fa-clock"></i> Follow-up Visit', action: 'book_followup' },
+                        { text: '<i class="fas fa-video"></i> Telemedicine', action: 'book_telemedicine' }
+                    ]
+                };
+            }
+
+            continueBookingFlow(message) {
+                const messageLower = message.toLowerCase();
+                
+                if (!this.userContext.appointmentData.type) {
+                    // Handle appointment type selection
+                    let appointmentType = null;
+                    
+                    if (messageLower.includes('general') || messageLower.includes('consultation')) {
+                        appointmentType = 'General Consultation';
+                    } else if (messageLower.includes('specialist')) {
+                        appointmentType = 'Specialist';
+                    } else if (messageLower.includes('follow') || messageLower.includes('followup')) {
+                        appointmentType = 'Follow-up';
+                    } else if (messageLower.includes('telemedicine') || messageLower.includes('video') || messageLower.includes('virtual')) {
+                        appointmentType = 'Telemedicine';
+                    }
+                    
+                    if (appointmentType) {
+                        this.userContext.appointmentData.type = appointmentType;
+                        
+                        if (appointmentType === 'Specialist') {
+                            return this.requestSpecialtySelection();
+                        } else {
+                            return this.requestPatientInfo();
+                        }
+                    } else {
+                        return {
+                            type: 'clarification',
+                            message: 'Please select one of the appointment types from the options above, or tell me what type of appointment you need.'
+                        };
+                    }
+                }
+                
+                if (this.userContext.appointmentData.type === 'Specialist' && !this.userContext.appointmentData.specialty) {
+                    // Handle specialty selection
+                    const specialty = this.knowledgeBase.specialties.find(s => 
+                        messageLower.includes(s.toLowerCase())
+                    );
+                    
+                    if (specialty) {
+                        this.userContext.appointmentData.specialty = specialty;
+                        return this.requestPatientInfo();
+                    } else {
+                        return {
+                            type: 'specialty_selection',
+                            message: 'Please select a medical specialty from the list above, or tell me which specialist you need to see.'
+                        };
+                    }
+                }
+                
+                if (!this.userContext.appointmentData.name) {
+                    this.userContext.appointmentData.name = message;
+                    return this.requestContactInfo();
+                }
+                
+                if (!this.userContext.appointmentData.phone) {
+                    this.userContext.appointmentData.phone = message;
+                    return this.showAvailableSlots();
+                }
+                
+                if (!this.userContext.appointmentData.selectedSlot) {
+                    return this.handleSlotSelection(message);
+                }
+                
+                return this.finalizeAppointment(message);
+            }
+
+            requestSpecialtySelection() {
+                const specialtyButtons = this.knowledgeBase.specialties.map(specialty => ({
+                    text: `<i class="fas fa-stethoscope"></i> ${specialty}`,
+                    action: specialty.toLowerCase()
+                }));
+                
+                return {
+                    type: 'specialty_selection',
+                    message: 'Which medical specialty do you need?',
+                    actions: specialtyButtons
+                };
+            }
+
+            requestPatientInfo() {
+                return {
+                    type: 'patient_info',
+                    message: `Great! I'm booking a ${this.userContext.appointmentData.type}${this.userContext.appointmentData.specialty ? ' with ' + this.userContext.appointmentData.specialty : ''}.
+
+**Step 2: Patient Information**
+
+Please provide your full name:`
+                };
+            }
+
+            requestContactInfo() {
+                return {
+                    type: 'contact_info',
+                    message: `Thank you, ${this.userContext.appointmentData.name}!
+
+**Step 3: Contact Information**
+
+Please provide your phone number for appointment confirmation:`
+                };
+            }
+
+            showAvailableSlots() {
+                const availableSlots = this.availableSlots.filter(slot => slot.available).slice(0, 10);
+                
+                const slotsHtml = availableSlots.map((slot, index) => 
+                    `<button class="quick-action-btn" onclick="healthAssistant.selectSlot(${index})" style="margin: 5px;">
+                        <i class="fas fa-calendar"></i> ${slot.date} at ${slot.time}
+                    </button>`
+                ).join('');
+
+                return {
+                    type: 'slot_selection',
+                    message: `**Step 4: Select Appointment Time**
+
+Here are available time slots for your ${this.userContext.appointmentData.type}:
+
+<div class="quick-actions" style="max-height: 200px; overflow-y: auto;">
+${slotsHtml}
+</div>
+
+Please click on your preferred time slot.`,
+                    customActions: true
+                };
+            }
+
+            selectSlot(slotIndex) {
+                const availableSlots = this.availableSlots.filter(slot => slot.available).slice(0, 10);
+                const selectedSlot = availableSlots[slotIndex];
+                
+                this.userContext.appointmentData.selectedSlot = selectedSlot;
+                
+                const confirmationMessage = `You've selected: **${selectedSlot.date} at ${selectedSlot.time}**
+
+Please type any special requests or "confirm" to finalize your appointment.`;
+                
+                this.addMessage(confirmationMessage, 'bot');
+            }
+
+            handleSlotSelection(message) {
+                const messageLower = message.toLowerCase();
+                
+                if (messageLower.includes('confirm') || messageLower.includes('yes')) {
+                    return this.finalizeAppointment('');
+                } else {
+                    this.userContext.appointmentData.notes = message;
+                    return this.finalizeAppointment(message);
+                }
+            }
+
+            finalizeAppointment(notes) {
+                const appointmentId = 'APT-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                const appointment = this.userContext.appointmentData;
+                
+                this.currentFlow = null;
+                this.userContext = { intent: null, appointmentData: {}, preferredSpecialty: null };
+                
+                return {
+                    type: 'appointment_confirmed',
+                    message: `**Appointment Successfully Booked!**
+
+**Confirmation Details:**
+- **Appointment ID:** ${appointmentId}
+- **Patient:** ${appointment.name}
+- **Type:** ${appointment.type}${appointment.specialty ? ' - ' + appointment.specialty : ''}
+- **Date & Time:** ${appointment.selectedSlot.date} at ${appointment.selectedSlot.time}
+- **Phone:** ${appointment.phone}
+${notes ? `- **Notes:** ${notes}` : ''}
+
+**Next Steps:**
+• You'll receive a confirmation call within 24 hours
+• Please arrive 15 minutes early
+• Bring your insurance card and ID
+• List any current medications
+
+**Need to reschedule?** Call (555) 123-CARE or chat with me again.`,
+                    actions: [
+                        { text: '<i class="fas fa-calendar-plus"></i> Book Another', action: 'book_another' },
+                        { text: '<i class="fas fa-question-circle"></i> Pre-Visit Info', action: 'pre_visit' },
+                        { text: '<i class="fas fa-home"></i> Main Menu', action: 'main_menu' }
+                    ]
+                };
+            }
+
+            handleHealthInformation(message) {
+                const messageLower = message.toLowerCase();
+                
+                // Find relevant health topic
+                for (const [topic, data] of Object.entries(this.knowledgeBase.healthTopics)) {
+                    if (data.keywords.some(keyword => messageLower.includes(keyword))) {
+                        if (topic === 'symptoms') {
+                            return this.handleSymptomQuery(message);
+                        }
+                        
+                        return this.provideHealthInformation(topic, data, message);
+                    }
+                }
+                
+                // If no specific topic found, provide general health information
+                return {
+                    type: 'health_info_general',
+                    message: `I can provide information on various health topics including:
+
+• **Prevention & Wellness** - Disease prevention, healthy habits
+• **Nutrition & Diet** - Balanced eating, vitamins, supplements  
+• **Exercise & Fitness** - Workout recommendations, safety tips
+• **General Health** - Common conditions, when to see a doctor
+
+What specific health topic would you like to learn about?`,
+                    actions: [
+                        { text: '<i class="fas fa-shield-alt"></i> Prevention Tips', action: 'prevention' },
+                        { text: '<i class="fas fa-apple-alt"></i> Nutrition Info', action: 'nutrition' },
+                        { text: '<i class="fas fa-dumbbell"></i> Exercise Guide', action: 'exercise' },
+                        { text: '<i class="fas fa-question"></i> Other Topics', action: 'other_health' }
+                    ]
+                };
+            }
+
+            provideHealthInformation(topic, data, originalMessage) {
+                let infoText = '';
+                let specificInfo = '';
+                
+                // Extract specific subtopic from message
+                const messageLower = originalMessage.toLowerCase();
+                
+                if (data.info) {
+                    for (const [subtopic, info] of Object.entries(data.info)) {
+                        if (messageLower.includes(subtopic)) {
+                            specificInfo = `**${subtopic.charAt(0).toUpperCase() + subtopic.slice(1)}:**
+${info}`;
+                            break;
+                        }
+                    }
+                    
+                    if (!specificInfo) {
+                        // Provide general information about the topic
+                        infoText = `Here's information about **${topic}**:
+
+`;
+                        for (const [subtopic, info] of Object.entries(data.info)) {
+                            infoText += `**${subtopic.charAt(0).toUpperCase() + subtopic.slice(1)}:**
+${info}
+
+`;
+                        }
+                    } else {
+                        infoText = specificInfo;
+                    }
+                }
+                
+                return {
+                    type: 'health_information',
+                    message: infoText + `
+
+**Important:** This information is for educational purposes only. Always consult with healthcare professionals for personalized medical advice.`,
+                    actions: [
+                        { text: '<i class="fas fa-user-md"></i> Book Consultation', action: 'book appointment' },
+                        { text: '<i class="fas fa-question"></i> Ask More Questions', action: 'more_questions' },
+                        { text: '<i class="fas fa-home"></i> Main Menu', action: 'main_menu' }
+                    ]
+                };
+            }
+
+            handleSymptomQuery(message) {
+                return {
+                    type: 'symptom_response',
+                    message: `I understand you're experiencing some health concerns. While I can provide general health information, I cannot diagnose symptoms or provide medical advice.
+
+**For symptoms or health concerns, I recommend:**
+
+• **Immediate Care:** If symptoms are severe or concerning, contact your doctor or urgent care
+• **Routine Care:** Schedule an appointment with your healthcare provider
+• **24/7 Support:** Call our nurse hotline at (555) 123-NURSE for guidance
+• **Emergency:** If this is life-threatening, call 911 immediately
+
+**Would you like me to help you:**`,
+                    actions: [
+                        { text: '<i class="fas fa-calendar-plus"></i> Book Doctor Appointment', action: 'book appointment' },
+                        { text: '<i class="fas fa-phone"></i> Get Nurse Hotline Info', action: 'nurse_hotline' },
+                        { text: '<i class="fas fa-info-circle"></i> General Health Info', action: 'health_information' },
+                        { text: '<i class="fas fa-hospital"></i> Find Urgent Care', action: 'find_urgent_care' }
+                    ]
+                };
+            }
+
+            handleFAQ(message) {
+                const messageLower = message.toLowerCase();
+                
+                // Find matching FAQ
+                for (const [question, answer] of Object.entries(this.knowledgeBase.faqs)) {
+                    if (messageLower.includes(question) || question.split(' ').some(word => messageLower.includes(word))) {
+                        return {
+                            type: 'faq_response',
+                            message: `**${question.charAt(0).toUpperCase() + question.slice(1)}**
+
+${answer}
+
+Is there anything else I can help you with?`,
+                            actions: [
+                                { text: '<i class="fas fa-calendar-plus"></i> Book Appointment', action: 'book appointment' },
+                                { text: '<i class="fas fa-question-circle"></i> More Questions', action: 'more_faq' },
+                                { text: '<i class="fas fa-home"></i> Main Menu', action: 'main_menu' }
+                            ]
+                        };
+                    }
+                }
+                
+                // If no specific FAQ found
+                return {
+                    type: 'faq_general',
+                    message: `I can help answer questions about:
+
+• **Office Hours & Location**
+• **Insurance & Billing**  
+• **Appointment Policies**
+• **Services Offered**
+• **Telemedicine Options**
+• **Prescription Refills**
+
+What would you like to know about?`,
+                    actions: [
+                        { text: '<i class="fas fa-clock"></i> Office Hours', action: 'office hours' },
+                        { text: '<i class="fas fa-credit-card"></i> Insurance Info', action: 'insurance' },
+                        { text: '<i class="fas fa-video"></i> Telemedicine', action: 'telemedicine' },
+                        { text: '<i class="fas fa-pills"></i> Prescriptions', action: 'prescription refills' }
+                    ]
+                };
+            }
+
+            handleGeneral(message) {
+                const responses = [
+                    "I'm here to help with health information and appointment booking. How can I assist you today?",
+                    "I can help you book appointments, answer health questions, or provide information about our services. What do you need?",
+                    "I'm your FlockByAlex health assistant. I can help with appointments, general health information, or answer questions about our clinic."
+                ];
+                
+                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                
+                return {
+                    type: 'general',
+                    message: randomResponse,
+                    actions: [
+                        { text: '<i class="fas fa-calendar-plus"></i> Book Appointment', action: 'book appointment' },
+                        { text: '<i class="fas fa-info-circle"></i> Health Information', action: 'health_information' },
+                        { text: '<i class="fas fa-question-circle"></i> FAQ', action: 'faq' },
+                        { text: '<i class="fas fa-phone"></i> Contact Info', action: 'contact' }
+                    ]
+                };
+            }
+
+            displayResponse(response) {
+                if (response.type === 'emergency') {
+                    this.displayEmergencyResponse(response);
+                } else {
+                    this.addMessage(response.message, 'bot');
+                    
+                    if (response.actions && !response.customActions) {
+                        setTimeout(() => {
+                            this.addQuickActions(response.actions);
+                        }, 500);
+                    } else if (response.customActions) {
+                        // For custom HTML actions (like appointment slots), they're already in the message
+                    }
+                }
+                
+                this.conversationHistory.push({ role: 'assistant', content: response.message });
+            }
+
+            displayEmergencyResponse(response) {
+                const emergencyHtml = `
+                    <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%); color: white; padding: 25px; border-radius: 15px; margin: 15px 0; border-left: 5px solid #ff4757; animation: emergencyPulse 1.5s ease-in-out infinite alternate;">
+                        <h2 style="margin-bottom: 15px;">
+                            <i class="fas fa-exclamation-triangle"></i> URGENT NOTICE
+                        </h2>
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+                            ${response.message.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
+                    
+                    <style>
+                        @keyframes emergencyPulse {
+                            from { box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3); }
+                            to { box-shadow: 0 8px 30px rgba(255, 107, 107, 0.6); }
+                        }
+                    </style>
+                `;
+                
+                this.addMessage(emergencyHtml, 'bot');
+                
+                if (response.actions) {
+                    setTimeout(() => {
+                        this.addQuickActions(response.actions);
+                    }, 500);
+                }
+            }
+
+            showWelcomeMessage() {
+                const welcomeMessage = `
+                    <div style="text-align: center; padding: 20px;">
+                        <h2 style="color: #667eea; margin-bottom: 15px;">
+                            <i class="fas fa-heartbeat"></i> Welcome to FlockByAlex Health Services
+                        </h2>
+                        <p style="margin-bottom: 20px;">Your AI-powered health information and appointment assistant</p>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin: 20px 0;">
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 10px;">
+                                <i class="fas fa-calendar-plus" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                <h4>Book Appointments</h4>
+                                <p style="font-size: 14px;">Schedule with doctors, specialists, or telemedicine</p>
+                            </div>
+                            
+                            <div style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 15px; border-radius: 10px;">
+                                <i class="fas fa-info-circle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                <h4>Health Information</h4>
+                                <p style="font-size: 14px;">Get reliable information on wellness and prevention</p>
+                            </div>
+                            
+                            <div style="background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%); color: white; padding: 15px; border-radius: 10px;">
+                                <i class="fas fa-question-circle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                <h4>FAQ Support</h4>
+                                <p style="font-size: 14px;">Quick answers about services, hours, and policies</p>
+                            </div>
+                            
+                            <div style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; padding: 15px; border-radius: 10px;">
+                                <i class="fas fa-phone" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                <h4>Emergency Guidance</h4>
+                                <p style="font-size: 14px;">Immediate guidance for urgent situations</p>
+                            </div>
+                        </div>
+                        
+                        <div class="disclaimer-banner">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Important:</strong> This assistant provides information and booking services only. For medical emergencies, call 911. For medical advice, consult healthcare professionals.
+                        </div>
+                    </div>
+                `;
+
+                this.addMessage(welcomeMessage, 'bot');
+
+                setTimeout(() => {
+                    this.addQuickActions([
+                        { text: '<i class="fas fa-calendar-plus"></i> Book Appointment', action: 'book appointment' },
+                        { text: '<i class="fas fa-info-circle"></i> Health Information', action: 'health information' },
+                        { text: '<i class="fas fa-question-circle"></i> FAQ', action: 'faq' },
+                        { text: '<i class="fas fa-phone"></i> Emergency Info', action: 'emergency numbers' }
+                    ]);
+                }, 1000);
+            }
+
+            addMessage(text, sender, type = 'normal') {
+                const chatArea = document.getElementById('chatArea');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+
+                const avatar = document.createElement('div');
+                avatar.className = sender === 'bot' ? 'bot-avatar' : 'user-avatar';
+                avatar.innerHTML = sender === 'bot' ? '<i class="fas fa-heartbeat"></i>' : '<i class="fas fa-user"></i>';
+
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                messageContent.innerHTML = text;
+
+                if (sender === 'bot') {
+                    messageDiv.appendChild(avatar);
+                    messageDiv.appendChild(messageContent);
+                } else {
+                    messageDiv.appendChild(messageContent);
+                    messageDiv.appendChild(avatar);
+                }
+
+                chatArea.appendChild(messageDiv);
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+
+            addQuickActions(actions) {
+                const chatArea = document.getElementById('chatArea');
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'quick-actions';
+
+                actions.forEach(action => {
+                    const button = document.createElement('button');
+                    button.className = 'quick-action-btn';
+                    button.innerHTML = action.text;
+                    button.addEventListener('click', () => {
+                        this.handleQuickAction(action.action);
+                    });
+                    actionsDiv.appendChild(button);
+                });
+
+                chatArea.appendChild(actionsDiv);
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+
+            handleQuickAction(action) {
+                // Simulate user input for the action
+                document.getElementById('userInput').value = action;
+                this.processUserInput();
+            }
+
+            showTypingIndicator() {
+                document.getElementById('typingIndicator').style.display = 'flex';
+                document.getElementById('chatArea').scrollTop = document.getElementById('chatArea').scrollHeight;
+            }
+
+            hideTypingIndicator() {
+                document.getElementById('typingIndicator').style.display = 'none';
+            }
+        }
+
+        // Global reference for slot selection
+        let healthAssistant;
+
+        // Initialize the AI healthcare assistant
+        document.addEventListener('DOMContentLoaded', () => {
+            healthAssistant = new FlockByAlexHealthAssistant();
+        });
+    </script>
+</body>
+</html>
